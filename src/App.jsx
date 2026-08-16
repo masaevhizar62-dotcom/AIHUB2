@@ -846,4 +846,102 @@ export default function App() {
             <button
               onClick={() => handleSendPrompt()}
               disabled={!inputText.trim() && attachments.length === 0}
-              className={`p-2.5 rounded-full ${TAP} ${(inputText.trim() || attachments.length > 0) 
+              className={`p-2.5 rounded-full ${TAP} ${(inputText.trim() || attachments.length > 0) ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-400'}`}
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* MODEL/APP PICKER SHEET — mirrors Claude's model switcher */}
+      {showAppSheet && (
+        <div className="absolute inset-0 z-40 flex items-end bg-black/40 animate-[fadeIn_150ms_ease-out]" onClick={() => setShowAppSheet(false)}>
+          <div className="w-full bg-white dark:bg-zinc-900 rounded-t-3xl pb-6 pt-2 max-h-[70vh] overflow-y-auto animate-[slideUp_200ms_ease-out]" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto mb-3" />
+            <p className="px-5 pb-2 text-[13px] font-medium text-zinc-400">Выберите ИИ-приложение</p>
+            <div className="px-2">
+              {orderedApps.map(a => (
+                <button
+                  key={a.id}
+                  onClick={() => { setSelectedAppId(a.id); setShowAppSheet(false); triggerHaptic(); }}
+                  className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl ${TAP} ${selectedAppId === a.id ? 'bg-zinc-100 dark:bg-zinc-800' : ''}`}
+                >
+                  <div className="w-8 h-8 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0">
+                    <AppLogo appId={a.id} className="w-4.5 h-4.5" />
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-[14px] font-medium text-zinc-800 dark:text-zinc-100 truncate">{a.name}</p>
+                    <p className="text-[12px] text-zinc-400 truncate">{a.isInstalled ? a.description : 'Не установлено'}</p>
+                  </div>
+                  {selectedAppId === a.id && <Check className="w-4.5 h-4.5 text-zinc-900 dark:text-zinc-100 shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* INTENT HANDOFF MODAL */}
+      {intentModalData && (
+        <div className="absolute inset-0 z-40 flex items-end bg-black/40 animate-[fadeIn_150ms_ease-out]" onClick={() => setIntentModalData(null)}>
+          <div className="w-full bg-white dark:bg-zinc-900 rounded-t-3xl p-5 animate-[slideUp_200ms_ease-out]" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto mb-4" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-11 h-11 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <AppLogo appId={intentModalData.app.id} className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-[15px] font-semibold">Открываю {intentModalData.app.name}</p>
+                <p className="text-[12px] text-zinc-400">Передаю текст{intentModalData.attachmentsCount > 0 ? ` и ${intentModalData.attachmentsCount} вложение(й)` : ''} через Android Share</p>
+              </div>
+            </div>
+            <div className="bg-zinc-50 dark:bg-zinc-800/60 rounded-xl p-3 text-[13px] text-zinc-600 dark:text-zinc-300 max-h-24 overflow-y-auto">{intentModalData.text}</div>
+            <button
+              onClick={() => setIntentModalData(null)}
+              className={`w-full mt-4 py-3 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[14px] font-medium ${TAP}`}
+            >
+              Готово
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* NOT INSTALLED MODAL */}
+      {notInstalledModal && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 p-6 animate-[fadeIn_150ms_ease-out]" onClick={() => setNotInstalledModal(null)}>
+          <div className="w-full bg-white dark:bg-zinc-900 rounded-2xl p-5 text-center animate-[popIn_150ms_ease-out]" onClick={e => e.stopPropagation()}>
+            <AlertCircle className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+            <p className="text-[14px] font-semibold mb-1">{notInstalledModal.name} не установлен</p>
+            <p className="text-[12px] text-zinc-400 mb-4">Отметьте приложение как установленное в настройках после установки из Play Store</p>
+            <button onClick={() => setNotInstalledModal(null)} className={`w-full py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800 text-[13px] font-medium ${TAP}`}>Понятно</button>
+          </div>
+        </div>
+      )}
+
+      {/* ADD TEMPLATE MODAL */}
+      {showAddTemplateModal && (
+        <div className="absolute inset-0 z-40 flex items-end bg-black/40 animate-[fadeIn_150ms_ease-out]" onClick={() => setShowAddTemplateModal(false)}>
+          <form onSubmit={handleAddNewTemplate} className="w-full bg-white dark:bg-zinc-900 rounded-t-3xl p-5 animate-[slideUp_200ms_ease-out]" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-zinc-200 dark:bg-zinc-700 rounded-full mx-auto mb-4" />
+            <p className="text-[15px] font-semibold mb-3">Новый шаблон</p>
+            <input
+              value={newTemplateTitle}
+              onChange={e => setNewTemplateTitle(e.target.value)}
+              placeholder="Название"
+              className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-[13px] outline-none mb-2"
+            />
+            <textarea
+              value={newTemplateText}
+              onChange={e => setNewTemplateText(e.target.value)}
+              placeholder="Текст шаблона"
+              rows={3}
+              className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-3 py-2.5 text-[13px] outline-none resize-none mb-3"
+            />
+            <button type="submit" className={`w-full py-3 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-[14px] font-medium ${TAP}`}>Сохранить</button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
