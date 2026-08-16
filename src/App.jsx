@@ -443,5 +443,5 @@ export default function App() {
 
   const removeAttachment = useCallback((id) => {
     triggerHaptic();
-    setAttachments(prev => {
+    setAttachments(prev => {});
    
